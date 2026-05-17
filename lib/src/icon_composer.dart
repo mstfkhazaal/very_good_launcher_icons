@@ -84,7 +84,7 @@ class IconComposer {
       return;
     }
 
-    final logo = await _renderSvgToImage();
+    final logo = _trimTransparentBounds(await _renderSvgToImage());
 
     for (final flavor in config.flavors) {
       final flavorPath = p.join(config.outputPath, flavor.name);
@@ -151,29 +151,24 @@ class IconComposer {
     try {
       final outputPath = p.join(tempDirectory.path, 'logo.png');
 
+      final arguments = [
+        '--width',
+        config.logoRenderSize.toString(),
+        '--height',
+        config.logoRenderSize.toString(),
+        source.path,
+        outputPath,
+      ];
+
       final result = await Process.run(
         'resvg',
-        [
-          '--width',
-          config.logoRenderSize.toString(),
-          '--height',
-          config.logoRenderSize.toString(),
-          source.path,
-          outputPath,
-        ],
+        arguments,
       );
 
       if (result.exitCode != 0) {
         throw ProcessException(
           'resvg',
-          [
-            '--width',
-            config.logoRenderSize.toString(),
-            '--height',
-            config.logoRenderSize.toString(),
-            source.path,
-            outputPath,
-          ],
+          arguments,
           '${result.stderr}',
           result.exitCode,
         );
@@ -197,6 +192,49 @@ class IconComposer {
         await tempDirectory.delete(recursive: true);
       }
     }
+  }
+
+  Image _trimTransparentBounds(Image source) {
+    var minX = source.width;
+    var minY = source.height;
+    var maxX = -1;
+    var maxY = -1;
+
+    for (var y = 0; y < source.height; y++) {
+      for (var x = 0; x < source.width; x++) {
+        final pixel = source.getPixel(x, y);
+
+        if (pixel.a > 0) {
+          if (x < minX) {
+            minX = x;
+          }
+
+          if (y < minY) {
+            minY = y;
+          }
+
+          if (x > maxX) {
+            maxX = x;
+          }
+
+          if (y > maxY) {
+            maxY = y;
+          }
+        }
+      }
+    }
+
+    if (maxX < minX || maxY < minY) {
+      return source;
+    }
+
+    return copyCrop(
+      source,
+      x: minX,
+      y: minY,
+      width: maxX - minX + 1,
+      height: maxY - minY + 1,
+    );
   }
 
   Future<void> _writeIcon({
