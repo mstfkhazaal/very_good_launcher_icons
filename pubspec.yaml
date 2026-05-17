@@ -1,0 +1,22 @@
+name: very_good_launcher_icons
+description: A Very Good CLI launcher icon generator for flavored Flutter apps.
+version: 0.1.0
+repository: https://github.com/mstfkhazaal/very_good_launcher_icons
+homepage: https://github.com/mstfkhazaal/very_good_launcher_icons
+issue_tracker: https://github.com/mstfkhazaal/very_good_launcher_icons/issues
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  args: ^2.7.0
+  image: ^4.5.4
+  path: ^1.9.1
+  yaml: ^3.1.3
+
+dev_dependencies:
+  test: ^1.25.15
+  very_good_analysis: ^10.2.0
+
+executables:
+  very_good_launcher_icons:
